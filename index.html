@@ -936,43 +936,83 @@ This message was sent from the Mortgage Owl website chat support.
             document.getElementById('mortgageResult').classList.remove('hidden');
         }
         
-        function calculateDTI() {
-            const monthlyIncome = parseFloat(document.getElementById('monthlyIncome').value) || 0;
-            const monthlyDebts = parseFloat(document.getElementById('monthlyDebts').value) || 0;
-            const housingPayment = parseFloat(document.getElementById('housingPayment').value) || 0;
-            
-            if (monthlyIncome <= 0) {
-                alert('Please enter a valid monthly income.');
-                return;
-            }
-            
-            const frontEndDTI = (housingPayment / monthlyIncome) * 100;
-            const backEndDTI = ((housingPayment + monthlyDebts) / monthlyIncome) * 100;
-            
-            document.getElementById('frontDTI').textContent = frontEndDTI.toFixed(1) + '%';
-            document.getElementById('backDTI').textContent = backEndDTI.toFixed(1) + '%';
-            
-            let status = '';
-            let advice = '';
-            
-            if (backEndDTI <= 28) {
-                status = 'Excellent DTI Ratio';
-                advice = 'You have a strong debt-to-income ratio for mortgage approval.';
-            } else if (backEndDTI <= 36) {
-                status = 'Good DTI Ratio';
-                advice = 'Your DTI ratio is within acceptable range for most lenders.';
-            } else if (backEndDTI <= 43) {
-                status = 'Acceptable DTI Ratio';
-                advice = 'You may qualify but consider reducing debt for better rates.';
-            } else {
-                status = 'High DTI Ratio';
-                advice = 'Consider reducing debt before applying for a mortgage.';
-            }
-            
-            document.getElementById('dtiStatus').textContent = status;
-            document.getElementById('dtiAdvice').textContent = advice;
-            document.getElementById('dtiResult').classList.remove('hidden');
-        }
+        // --- DTI helpers ---
+function toNum(v) { return Math.max(0, parseFloat(v || 0)); }
+function fmtPct(n) { return `${n.toFixed(1)}%`; }
+
+// Auto-sum itemized into the Total field (on click)
+(function wireItemized() {
+  const ids = ["exHousing","exCar","exCredit","exLoans","exTimeshare","exOther"];
+  const note = document.getElementById("itemizedSumNote");
+  const btn  = document.getElementById("applyItemized");
+  if (!btn) return;
+
+  function sumItemized() {
+    const total = ids.reduce((s,id)=> s + toNum(document.getElementById(id)?.value), 0);
+    if (note) note.textContent = `Itemized total: $${total.toFixed(2)} (click “Use itemized total” to copy above)`;
+    return total;
+  }
+
+  // Live note as they type
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    el && el.addEventListener("input", sumItemized);
+  });
+
+  btn.addEventListener("click", () => {
+    const sum = sumItemized();
+    const target = document.getElementById("expensesTotal");
+    if (target) target.value = sum.toFixed(2);
+  });
+})();
+
+// --- Calculate DTI (simple) ---
+function calculateDTI() {
+  const income = toNum(document.getElementById('giMonthly')?.value);
+  const expenses = toNum(document.getElementById('expensesTotal')?.value);
+
+  if (income <= 0) {
+    alert('Please enter a valid Monthly Gross Income.');
+    return;
+  }
+  if (expenses < 0) {
+    alert('Please enter a valid Total Monthly Expenses amount.');
+    return;
+  }
+
+  const dti = (expenses / income) * 100;
+
+  // Categorize like lenders typically do
+  let status, advice, colorBox = document.getElementById('dtiResult');
+  if (dti <= 36) {
+    status = 'Great DTI';
+    advice = 'You are well within many lenders’ preferred range.';
+    colorBox?.classList.remove('bg-red-50','border-red-200');
+    colorBox?.classList.add('bg-green-50','border-green-200');
+  } else if (dti <= 43) {
+    status = 'Acceptable DTI';
+    advice = 'You may qualify, though improving debts can help rates/approval.';
+    colorBox?.classList.remove('bg-red-50','border-red-200');
+    colorBox?.classList.add('bg-green-50','border-green-200');
+  } else if (dti <= 50) {
+    status = 'High DTI';
+    advice = 'Consider paying down debts or increasing income before applying.';
+    colorBox?.classList.remove('bg-green-50','border-green-200');
+    colorBox?.classList.add('bg-red-50','border-red-200');
+  } else {
+    status = 'Very High DTI';
+    advice = 'Most programs will require debt reduction or a co-borrower.';
+    colorBox?.classList.remove('bg-green-50','border-green-200');
+    colorBox?.classList.add('bg-red-50','border-red-200');
+  }
+
+  // Write results
+  document.getElementById('dtiPercent').textContent = fmtPct(dti);
+  document.getElementById('dtiStatus2').textContent = status;
+  document.getElementById('dtiAdvice2').textContent = advice;
+  document.getElementById('dtiResult').classList.remove('hidden');
+}
+
 
         // Set minimum date to today for callback scheduling
         document.addEventListener('DOMContentLoaded', function() {
