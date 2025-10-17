@@ -257,40 +257,89 @@
                     </div>
                 </div>
 
-                <!-- Debt-to-Income Calculator -->
-                <div class="bg-white rounded-2xl p-8 owl-shadow">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Debt-to-Income Ratio Calculator</h3>
-                    <form id="dtiCalc" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Gross Income ($)</label>
-                            <input type="number" id="monthlyIncome" placeholder="8000" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Debt Payments ($)</label>
-                            <input type="number" id="monthlyDebts" placeholder="1200" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Monthly Housing Payment ($)</label>
-                            <input type="number" id="housingPayment" placeholder="2400" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        </div>
-                        <button type="button" onclick="calculateDTI()" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors">
-                            Calculate DTI Ratio
-                        </button>
-                    </form>
-                    <div id="dtiResult" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <h4 class="font-semibold text-green-800 mb-2">Debt-to-Income Analysis</h4>
-                        <div class="space-y-1 text-green-700">
-                            <div>Front-end DTI: <span id="frontDTI" class="font-semibold"></span></div>
-                            <div>Back-end DTI: <span id="backDTI" class="font-semibold"></span></div>
-                            <div class="border-t pt-2 mt-2">
-                                <div id="dtiStatus" class="font-bold"></div>
-                                <div id="dtiAdvice" class="text-sm mt-1"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- Debt-to-Income Calculator (Simple + Optional Itemize) -->
+<div class="bg-white rounded-2xl p-8 owl-shadow" id="dtiCard">
+  <h3 class="text-2xl font-bold text-gray-900 mb-6">Debt-to-Income (DTI) Calculator</h3>
+
+  <form id="dtiCalc" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Gross Income ($)</label>
+      <input type="number" id="giMonthly" placeholder="Example: 8000" min="0" step="0.01"
+             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+      <p class="text-xs text-gray-500 mt-1">Gross = income before taxes are taken out.</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Total Monthly Expenses ($)
+      </label>
+      <input type="number" id="expensesTotal" placeholder="Example: 2400" min="0" step="0.01"
+             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+      <p class="text-xs text-gray-600 mt-1">
+        Include: <span class="font-medium">rent/mortgage, car note, credit cards, student/personal loans, time share, other recurring payments</span>.
+      </p>
+    </div>
+
+    <!-- Itemize (optional) -->
+    <details class="mt-2">
+      <summary class="cursor-pointer text-sm text-gray-700">Itemize expenses (optional) — auto-adds to total</summary>
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Housing (rent/mortgage)</label>
+          <input type="number" id="exHousing" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
         </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Car note(s)</label>
+          <input type="number" id="exCar" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Credit cards (minimums)</label>
+          <input type="number" id="exCredit" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Loans (student/personal)</label>
+          <input type="number" id="exLoans" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Time share</label>
+          <input type="number" id="exTimeshare" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Other recurring</label>
+          <input type="number" id="exOther" min="0" step="0.01"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        </div>
+      </div>
+      <button type="button" id="applyItemized"
+              class="mt-3 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-900">
+        Use itemized total
+      </button>
+      <p class="text-xs text-gray-500 mt-2" id="itemizedSumNote"></p>
+    </details>
+
+    <button type="button" onclick="calculateDTI()"
+            class="w-full bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors">
+      Calculate DTI Ratio
+    </button>
+  </form>
+
+  <div id="dtiResult" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+    <h4 class="font-semibold text-green-800 mb-2">Your DTI</h4>
+    <div class="space-y-1 text-green-700">
+      <div>Total Monthly Expenses ÷ Gross Income = <span id="dtiPercent" class="font-semibold"></span></div>
+      <div class="border-t pt-2 mt-2">
+        <div id="dtiStatus2" class="font-bold"></div>
+        <div id="dtiAdvice2" class="text-sm mt-1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
     </section>
 
     <!-- Contact Section -->
