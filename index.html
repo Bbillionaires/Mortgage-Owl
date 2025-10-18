@@ -835,6 +835,32 @@
         // Video management
         let currentVideoData = null;
 
+                // PERSISTENCE (localStorage) -----------------------------
+        const VIDEO_STORAGE_KEY = 'mo_currentVideo';
+
+        function saveVideoToStorage(data) {
+            try {
+                localStorage.setItem(VIDEO_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Could not save video data:', e);
+            }
+        }
+
+        function loadVideoFromStorage() {
+            try {
+                const raw = localStorage.getItem(VIDEO_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                console.warn('Could not read video data:', e);
+                return null;
+            }
+        }
+
+        function clearVideoFromStorage() {
+            localStorage.removeItem(VIDEO_STORAGE_KEY);
+        }
+        // --------------------------------------------------------
+
         function scrollToContact() {
             document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1326,6 +1352,16 @@ document.getElementById('contactForm').addEventListener('submit', async function
             // Show video section
             document.getElementById('videoSection').style.display = 'block';
             
+                        // Persist only if we have a real URL (blob: won’t survive refresh)
+            if (!currentVideoData.url.startsWith('blob:')) {
+                saveVideoToStorage(currentVideoData);
+            } else {
+                showAdminMessage(
+                    'Video added (local file). Note: uploaded files use a temporary URL and will disappear after refresh. Host the video and paste its URL for persistence.',
+                    'success'
+                );
+            }
+
             // Update status and show success message
             updateVideoStatus();
             showAdminMessage('Video added successfully!', 'success');
@@ -1344,7 +1380,7 @@ document.getElementById('contactForm').addEventListener('submit', async function
                     URL.revokeObjectURL(currentVideoData.url);
                 }
                 currentVideoData = null;
-                
+                clearVideoFromStorage();   // ✅ NEW LINE HERE
                 // Update status
                 updateVideoStatus();
                 showAdminMessage('Video removed successfully!', 'success');
